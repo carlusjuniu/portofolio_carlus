@@ -10,14 +10,25 @@ export default {
       DEFAULT: '0.25rem',
       DEFAULT: '4px',
       'md': '0.375rem',
-      'lg': '0.5rem',
+      'lg': '2.5rem',
       'full': '9999px',
       'large': '12px',
     },
     extend: {            
       fontFamily: {
         LondonBoutique: ['Brother Deluxe', 'sans-serif'],},
+      animation: {
+        'infinite-scroll': 'infinite-scroll 25s linear infinite',
+      },
     },
+    keyframes: {
+      infiniteSlider: {
+        "0%": { transform: "translateX(0)" },
+        "100%": {
+          transform: "translateX(calc(-250px * 5))",
+        },
+      },
   },
+},
   plugins: [],
 }
