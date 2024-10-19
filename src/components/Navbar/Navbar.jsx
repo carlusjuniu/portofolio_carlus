@@ -24,7 +24,7 @@ const SlideTabs = () => {
           opacity: 0,
         }));
       }}
-      className="mx-auto fixed top-10 flex w-fit rounded-full border-2 border-zinc-900 bg-neutral-900/80 backdrop-blur-lg	 p-1"
+      className="mx-auto fixed top-10 flex w-fit rounded-full border-2 border-zinc-900 bg-neutral-900/80 backdrop-blur-lg	p-1 z-10"
     >
       <Tab setPosition={setPosition}>All</Tab>
       <Tab setPosition={setPosition}>About</Tab>
