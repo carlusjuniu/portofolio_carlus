@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Home, Folder, Shirt, User } from "lucide-react";
 
@@ -11,69 +11,87 @@ const Navbar = () => {
 };
 
 const SlideTabs = () => {
-  const [position, setPosition] = useState({ left: 0, width: 0 });
-  const [activeIndex, setActiveIndex] = useState(0);
-  const tabRefs = useRef([]);
+  const [position, setPosition] = useState({
+    left: 0,
+    width: 0,
+    opacity: 0,
+  });
+  const [activeIndex, setActiveIndex] = useState(0); // Track the active tab
 
   const navItems = [
-    { icon: <Home size={24} />, label: "Home", path: "/" },
-    { icon: <Folder size={24} />, label: "Projects", path: "/projects" },
-    { icon: <Shirt size={24} />, label: "Shop", path: "/shop" },
-    { icon: <User size={24} />, label: "Profile", path: "/profile" }
+    { icon: <Home size={24} />, label: "Home" },
+    { icon: <Folder size={24} />, label: "Projects" },
+    { icon: <Shirt size={24} />, label: "Shop" },
+    { icon: <User size={24} />, label: "Profile" },
   ];
 
-  useEffect(() => {
-    const updatePosition = () => {
-      const activeTab = tabRefs.current[activeIndex];
-      if (activeTab) {
-        const { offsetLeft, offsetWidth } = activeTab;
-        setPosition({ left: offsetLeft, width: offsetWidth });
+  return (
+    <ul
+      onMouseLeave={() =>
+        setPosition((pv) => ({ ...pv, opacity: 0 }))
       }
-    };
+      className="relative flex w-fit rounded-full bg-neutral-800 p-2 px-4 shadow-lg min-w-[220px]"
+    >
+      {navItems.map((item, index) => (
+        <Tab
+          key={index}
+          item={item}
+          index={index}
+          setPosition={setPosition}
+          setActiveIndex={setActiveIndex}
+          isActive={activeIndex === index}
+        />
+      ))}
+      <Cursor position={position} />
+    </ul>
+  );
+};
 
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    return () => window.removeEventListener('resize', updatePosition);
-  }, [activeIndex]);
+const Tab = ({ item, index, setPosition, setActiveIndex, isActive }) => {
+  const ref = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (!ref.current) return;
+    const { offsetLeft, offsetWidth } = ref.current;
+    setPosition({
+      left: offsetLeft + offsetWidth / 2, // Center the circle
+      width: offsetWidth,
+      opacity: 1,
+    });
+    setActiveIndex(index); // Update the active tab
+  };
 
   return (
-    <nav aria-label="Main navigation">
-      <ul className="flex w-fit rounded-full bg-neutral-800 p-2 px-4 shadow-lg relative min-w-[220px]">
-        <Cursor position={position} />
-        {navItems.map((item, index) => (
-          <li
-            key={index}
-            ref={(el) => (tabRefs.current[index] = el)}
-            className="relative z-10 mx-2"
-          >
-            <button
-              onClick={() => setActiveIndex(index)}
-              className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
-                activeIndex === index ? "text-blue-400" : "text-white"
-              } hover:text-gray-300`}
-              aria-current={activeIndex === index ? "page" : undefined}
-            >
-              <span className="sr-only">{item.label}</span>
-              {item.icon}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <li
+      ref={ref}
+      onMouseEnter={handleMouseEnter}
+      className="relative z-10 mx-2"
+    >
+      <button
+        className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+          isActive ? "text-blue-400" : "text-white hover:text-blue-400"
+        }`}
+      >
+        <span className="sr-only">{item.label}</span>
+        {item.icon}
+      </button>
+    </li>
   );
 };
 
 const Cursor = ({ position }) => {
   return (
     <motion.div
-      className="absolute top-1/2 -translate-y-1/2 w-10 h-10 bg-gray-700 rounded-full z-0"
       animate={{
-        x: position.left + position.width / 2 - 20, // centraliza baseado no centro do botão
+        x: position.left - position.width / 2, // Adjust to center the circle
+        width: position.width,
+        height: position.width, // Make it a circle
+        opacity: position.opacity,
       }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="absolute top-1/2 -translate-y-1/2 bg-blue-500 rounded-full z-0"
     />
   );
 };
 
 export default Navbar;
- 

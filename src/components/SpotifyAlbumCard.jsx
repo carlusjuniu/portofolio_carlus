@@ -1,83 +1,126 @@
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
-import getNowPlayingItem from '../services/SpotifyAPI'
+import getNowPlayingItem from '../services/SpotifyAPI';
 
-
-const SpotifyAlbumCard = ({ result, loading }) => {
+const SpotifyAlbumCard = (props) => {
+  const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [result, setResult] = useState({
+    isPlaying: false,
+    title: '',
+    artist: '',
+    albumImageUrl: ''
+  });
 
-  if (loading) {
-    return (
-      <div className="w-24 h-24 flex items-center justify-center text-gray-400 text-sm">
-        Loading...
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchNowPlaying = async () => {
+      try {
+        const data = await getNowPlayingItem(
+          props.client_id,
+          props.client_secret,
+          props.refresh_token
+        );
+        setResult(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching now playing:", error);
+        setLoading(false);
+      }
+    };
 
-  if (!result.isPlaying) {
-    return (
-      <div className="w-24 h-24 flex items-center justify-center text-gray-400 text-sm">
-        Not playing
-      </div>
-    );
-  }
+    fetchNowPlaying();
+    const intervalId = setInterval(fetchNowPlaying, 120000);
+    return () => clearInterval(intervalId);
+  }, [props.client_id, props.client_secret, props.refresh_token]);
 
-  return (
-    <motion.div
-      onClick={() => setExpanded(prev => !prev)}
-      layout
-      transition={{ layout: { duration: 0.5, type: 'spring' } }}
-      className={`relative cursor-pointer bg-gray-900 text-white rounded-2xl overflow-hidden ${
-        expanded ? 'w-64 h-64 p-4' : 'w-24 h-24 p-1'
-      }`}
+  const renderListeningNowSection = () => (
+    <div
+      onClick={() => setExpanded(!expanded)}
+      className="fixed top-4 left-4 flex items-center backdrop-blur-md bg-[#111]/70 text-white border border-white/10 shadow-md cursor-pointer z-50 rounded-full transition-all pl-2 py-[6px]"
     >
-      <motion.img
-        layout="position"
-        src={result.albumImageUrl}
-        alt="Album"
-        className="w-full h-full object-cover rounded-xl"
-      />
-
-      {!expanded && (
-        <motion.div
-          className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          {[0, 1, 2].map(i => (
-            <motion.div
-              key={i}
-              className="w-1 bg-white"
-              animate={{
-                height: ['10px', '20px', '10px'],
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-                delay: i * 0.2,
-              }}
+      {loading ? (
+        <div className="w-12 h-12 flex justify-center items-center">
+          <p className="text-xs text-white">...</p>
+        </div>
+      ) : result.isPlaying ? (
+        <>
+          <div className="relative w-12 h-12 flex-shrink-0">
+            <img
+              src={result.albumImageUrl}
+              alt="Album Cover"
+              className="w-full h-full rounded-full object-cover animate-spin-slow"
             />
-          ))}
-        </motion.div>
-      )}
+            <div className="absolute inset-0 flex items-center justify-center gap-[3px]">
+              <span className="w-[2px] h-3 bg-white animate-equalize [animation-delay:-0.3s]" />
+              <span className="w-[2px] h-5 bg-white animate-equalize [animation-delay:-0.15s]" />
+              <span className="w-[2px] h-3 bg-white animate-equalize" />
+            </div>
+          </div>
 
-      <AnimatePresence>
-        {expanded && (
           <motion.div
-            className="absolute bottom-0 left-0 w-full bg-black bg-opacity-60 p-2 z-20"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            layout
+            transition={{ layout: { duration: 0.4, type: 'spring' } }}
+            className={`ml-3 transition-all duration-300 ease-in-out ${expanded ? 'max-w-[200px]' : 'max-w-0'} overflow-hidden`}
           >
-            <p className="text-sm font-semibold truncate">{result.title}</p>
-            <p className="text-xs text-gray-300 whitespace-nowrap overflow-hidden animate-slide-loop">
-              {result.artist}
-            </p>
+            <AnimatePresence>
+              {expanded && (
+                <motion.div
+                  key="text"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex flex-col gap-0.5"
+                >
+                  <motion.div className="relative w-full overflow-hidden">
+                    <motion.p
+                      className="text-base font-semibold text-white whitespace-nowrap"
+                      initial={{ x: 0 }}
+                      animate={
+                        result.title.length > 15
+                          ? { x: ['0%', '-100%'] }
+                          : { x: 0 }
+                      }
+                      transition={
+                        result.title.length > 15
+                          ? { repeat: Infinity, duration: 10, ease: 'linear' }
+                          : {}
+                      }
+                    >
+                      {result.title}
+                    </motion.p>
+                  </motion.div>
+
+                  <motion.div className="relative w-full overflow-hidden">
+                    <motion.p
+                      className="text-sm text-gray-400 whitespace-nowrap"
+                      initial={{ x: 0 }}
+                      animate={
+                        result.artist.length > 15
+                          ? { x: ['0%', '-100%'] }
+                          : { x: 0 }
+                      }
+                      transition={
+                        result.artist.length > 15
+                          ? { repeat: Infinity, duration: 12, ease: 'linear' }
+                          : {}
+                      }
+                    >
+                      {result.artist}
+                    </motion.p>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+        </>
+      ) : (
+        <div className="text-xs text-gray-300 text-center">Not playing</div>
+      )}
+    </div>
   );
+
+  //return <>{renderListeningNowSection()}</>;
 };
 
 export default SpotifyAlbumCard;
