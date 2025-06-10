@@ -4,7 +4,7 @@ import carlosPhoto from '../assets/carlospf.jpg';
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+    <div className="min-h-screen text-white flex items-center justify-center px-4">
       <div className="max-w-xl w-full">
         <div className="flex items-center justify-between mb-6">
           {/* Profile picture and name */}

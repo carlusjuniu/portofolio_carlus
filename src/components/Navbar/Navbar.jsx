@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Home, Folder, Shirt, User } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
@@ -16,20 +17,18 @@ const SlideTabs = () => {
     width: 0,
     opacity: 0,
   });
-  const [activeIndex, setActiveIndex] = useState(0); // Track the active tab
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const navItems = [
-    { icon: <Home size={24} />, label: "Home" },
-    { icon: <Folder size={24} />, label: "Projects" },
-    { icon: <Shirt size={24} />, label: "Shop" },
-    { icon: <User size={24} />, label: "Profile" },
+    { icon: <Home size={24} />, label: "Home", path: "/" },
+    { icon: <Folder size={24} />, label: "Work", path: "/work" },
+    { icon: <Shirt size={24} />, label: "Shop", path: "/shop" },
+    { icon: <User size={24} />, label: "Profile", path: "/profile" },
   ];
 
   return (
     <ul
-      onMouseLeave={() =>
-        setPosition((pv) => ({ ...pv, opacity: 0 }))
-      }
+      onMouseLeave={() => setPosition((pv) => ({ ...pv, opacity: 0 }))}
       className="relative flex w-fit rounded-full bg-neutral-800 p-2 px-4 shadow-lg min-w-[220px]"
     >
       {navItems.map((item, index) => (
@@ -54,11 +53,11 @@ const Tab = ({ item, index, setPosition, setActiveIndex, isActive }) => {
     if (!ref.current) return;
     const { offsetLeft, offsetWidth } = ref.current;
     setPosition({
-      left: offsetLeft + offsetWidth / 2, // Center the circle
+      left: offsetLeft + offsetWidth / 2,
       width: offsetWidth,
       opacity: 1,
     });
-    setActiveIndex(index); // Update the active tab
+    setActiveIndex(index);
   };
 
   return (
@@ -67,14 +66,15 @@ const Tab = ({ item, index, setPosition, setActiveIndex, isActive }) => {
       onMouseEnter={handleMouseEnter}
       className="relative z-10 mx-2"
     >
-      <button
+      <Link
+        to={item.path}
         className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
           isActive ? "text-blue-400" : "text-white hover:text-blue-400"
         }`}
       >
         <span className="sr-only">{item.label}</span>
         {item.icon}
-      </button>
+      </Link>
     </li>
   );
 };
@@ -83,9 +83,9 @@ const Cursor = ({ position }) => {
   return (
     <motion.div
       animate={{
-        x: position.left - position.width / 2, // Adjust to center the circle
+        x: position.left - position.width / 2,
         width: position.width,
-        height: position.width, // Make it a circle
+        height: position.width,
         opacity: position.opacity,
       }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
