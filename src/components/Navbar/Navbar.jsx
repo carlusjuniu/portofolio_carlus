@@ -1,7 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Home, Folder, Shirt, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
   return (
@@ -12,12 +12,14 @@ const Navbar = () => {
 };
 
 const SlideTabs = () => {
+  const location = useLocation();
   const [position, setPosition] = useState({
     left: 0,
     width: 0,
     opacity: 0,
   });
   const [activeIndex, setActiveIndex] = useState(0);
+  const refs = useRef([]);
 
   const navItems = [
     { icon: <Home size={24} />, label: "Home", path: "/" },
@@ -25,6 +27,25 @@ const SlideTabs = () => {
     { icon: <Shirt size={24} />, label: "Shop", path: "/shop" },
     { icon: <User size={24} />, label: "Profile", path: "/profile" },
   ];
+
+  const updatePosition = (index) => {
+    const node = refs.current[index];
+    if (!node) return;
+    const { offsetLeft, offsetWidth } = node;
+    setPosition({
+      left: offsetLeft + offsetWidth / 2,
+      width: offsetWidth,
+      opacity: 1,
+    });
+    setActiveIndex(index);
+  };
+
+  useEffect(() => {
+    const idx = navItems.findIndex((i) => i.path === location.pathname);
+    if (idx !== -1) {
+      updatePosition(idx);
+    }
+  }, [location.pathname]);
 
   return (
     <ul
@@ -36,8 +57,8 @@ const SlideTabs = () => {
           key={index}
           item={item}
           index={index}
-          setPosition={setPosition}
-          setActiveIndex={setActiveIndex}
+          updatePosition={updatePosition}
+          ref={(el) => (refs.current[index] = el)}
           isActive={activeIndex === index}
         />
       ))}
@@ -46,23 +67,18 @@ const SlideTabs = () => {
   );
 };
 
-const Tab = ({ item, index, setPosition, setActiveIndex, isActive }) => {
-  const ref = useRef(null);
+const Tab = React.forwardRef(({ item, index, updatePosition, isActive }, ref) => {
+  const localRef = useRef(null);
+  const combinedRef = ref || localRef;
 
   const handleMouseEnter = () => {
-    if (!ref.current) return;
-    const { offsetLeft, offsetWidth } = ref.current;
-    setPosition({
-      left: offsetLeft + offsetWidth / 2,
-      width: offsetWidth,
-      opacity: 1,
-    });
-    setActiveIndex(index);
+    if (!combinedRef.current) return;
+    updatePosition(index);
   };
 
   return (
     <li
-      ref={ref}
+      ref={combinedRef}
       onMouseEnter={handleMouseEnter}
       className="relative z-10 mx-2"
     >
@@ -77,7 +93,7 @@ const Tab = ({ item, index, setPosition, setActiveIndex, isActive }) => {
       </Link>
     </li>
   );
-};
+});
 
 const Cursor = ({ position }) => {
   return (
